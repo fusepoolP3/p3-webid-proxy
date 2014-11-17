@@ -22,18 +22,14 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Service;
+import org.osgi.service.component.annotations.Component;
 
 /**
  *
  * @author Pascal Mainini
-*/
+ */
 @SuppressWarnings("serial")
-@Component
-@Service(Servlet.class)
-@Property(name = "alias", value = "/hello")
+@Component(service=Servlet.class, property={"alias=/hello"})
 public class ProxyServlet extends HttpServlet {
 
     @Override
