@@ -29,6 +29,7 @@ import org.osgi.service.component.annotations.Component;
  * @author Pascal Mainini
  */
 @SuppressWarnings("serial")
+// refer to https://felix.apache.org/documentation/subprojects/apache-felix-http-service.html
 @Component(service=Servlet.class, property={"alias=/hello"})
 public class ProxyServlet extends HttpServlet {
 
