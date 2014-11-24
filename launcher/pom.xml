@@ -38,10 +38,6 @@
         <maven.compiler.source>1.7</maven.compiler.source>
         <maven.compiler.target>1.7</maven.compiler.target>
     </properties>
-
-    <prerequisites>
-        <maven>3.0.2</maven>
-    </prerequisites>
     
     <build>
         <plugins>
