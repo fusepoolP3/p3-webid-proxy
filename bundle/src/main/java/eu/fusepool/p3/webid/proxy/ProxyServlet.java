@@ -21,6 +21,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Enumeration;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import javax.servlet.Servlet;
 import javax.servlet.ServletException;
@@ -40,7 +41,10 @@ import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Modified;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.log.LogService;
 
@@ -50,13 +54,15 @@ import org.osgi.service.log.LogService;
  * @author Pascal Mainini
  */
 // refer to https://felix.apache.org/documentation/subprojects/apache-felix-http-service.html
-@Component(service = Servlet.class, property = {"alias=/"})
+@Component(service = Servlet.class, property = {"alias=/", "TargetBaseURI=http://localhost:8088"})
 @SuppressWarnings("serial")
 public class ProxyServlet extends HttpServlet {
 
-    private static final String targetBaseUri = "http://localhost:8088";
-    private final CloseableHttpClient httpclient;
+    private static final String PROPERTY_TARGET_BASE_URI = "TargetBaseURI";
+
     private LogService log;
+    private final CloseableHttpClient httpclient;
+    private String targetBaseUri;
 
 //////////////////////////////////////// Constructors
     /**
@@ -66,9 +72,10 @@ public class ProxyServlet extends HttpServlet {
         final HttpClientBuilder hcb = HttpClientBuilder.create();
         hcb.setRedirectStrategy(new NeverRedirectStrategy());
         httpclient = hcb.build();
+        targetBaseUri = null;
     }
 
-//////////////////////////////////////// DS-Bindings
+//////////////////////////////////////// Interaction with the container
     /**
      * DS-binding for setting the log-service when it becomes available.
      *
@@ -93,6 +100,24 @@ public class ProxyServlet extends HttpServlet {
         this.log = null;
     }
 
+    @Activate
+    public void activate(final Map<String, ?> properties) {
+        configure(properties);
+        log(LogService.LOG_INFO, "Service configured.");
+    }
+
+    @Modified
+    void modified(final Map<String, ?> properties) {
+        configure(properties);
+        log(LogService.LOG_INFO, "Configuration modified.");
+    }
+
+    @Deactivate
+    public void deactivate() {
+        configure(null);
+        log(LogService.LOG_INFO, "Service deconfigured.");
+    }
+
 //////////////////////////////////////// Service-Method
     /**
      * The service method from HttpServlet, performs handling of all
@@ -109,8 +134,13 @@ public class ProxyServlet extends HttpServlet {
     @Override
     protected void service(final HttpServletRequest frontendRequest, final HttpServletResponse frontendResponse)
             throws ServletException, IOException {
-        log(LogService.LOG_INFO, "Request: " + frontendRequest.getRemoteAddr() + ":" + frontendRequest.getRemotePort() +
-                " (" + frontendRequest.getHeader("Host") + ") "+ frontendRequest.getMethod() + " " + frontendRequest.getRequestURI());
+        log(LogService.LOG_INFO, "Request: " + frontendRequest.getRemoteAddr() + ":" + frontendRequest.getRemotePort()
+                + " (" + frontendRequest.getHeader("Host") + ") " + frontendRequest.getMethod() + " " + frontendRequest.getRequestURI());
+
+        if (targetBaseUri == null) {
+            // FIXME return status page
+            return;
+        }
 
         //////////////////// Setup backend request
         final HttpEntityEnclosingRequestBase backendRequest = new HttpEntityEnclosingRequestBase() {
@@ -173,6 +203,20 @@ public class ProxyServlet extends HttpServlet {
     }
 
 //////////////////////////////////////// Helpers
+    private void configure(Map<String, ?> properties) {
+        if (properties == null) {
+            targetBaseUri = null;
+        } else {
+            log(LogService.LOG_INFO, "Configuring service...");
+            if (properties.containsKey(PROPERTY_TARGET_BASE_URI)) {
+                targetBaseUri = (String) properties.get(PROPERTY_TARGET_BASE_URI);
+                log(LogService.LOG_INFO, "Proxy enabled, target: " + targetBaseUri);
+            } else {
+                targetBaseUri = null;
+            }
+        }
+    }
+
     private void log(int level, String message) {
         if (log != null) {
             log.log(level, message);
