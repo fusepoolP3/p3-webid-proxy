@@ -53,10 +53,12 @@ import org.osgi.service.log.LogService;
 @Component(service = Servlet.class, property = {"alias=/"})
 @SuppressWarnings("serial")
 public class ProxyServlet extends HttpServlet {
-    private static final String targetBaseUri = "http://ti.bfh.ch/";
+
+    private static final String targetBaseUri = "http://localhost:8088";
     private final CloseableHttpClient httpclient;
     private LogService log;
 
+//////////////////////////////////////// Constructors
     /**
      * Initializes the servlet by setting up the HTTP-client.
      */
@@ -66,6 +68,7 @@ public class ProxyServlet extends HttpServlet {
         httpclient = hcb.build();
     }
 
+//////////////////////////////////////// DS-Bindings
     /**
      * DS-binding for setting the log-service when it becomes available.
      *
@@ -90,6 +93,7 @@ public class ProxyServlet extends HttpServlet {
         this.log = null;
     }
 
+//////////////////////////////////////// Service-Method
     /**
      * The service method from HttpServlet, performs handling of all
      * HTTP-requests independent of their method. Requests and responses within
@@ -105,8 +109,8 @@ public class ProxyServlet extends HttpServlet {
     @Override
     protected void service(final HttpServletRequest frontendRequest, final HttpServletResponse frontendResponse)
             throws ServletException, IOException {
-        final String targetUrlString = targetBaseUri + frontendRequest.getRequestURI();
-        final URL targetUrl = new URL(targetUrlString);
+        log(LogService.LOG_INFO, "Request: " + frontendRequest.getRemoteAddr() + ":" + frontendRequest.getRemotePort() +
+                " (" + frontendRequest.getHeader("Host") + ") "+ frontendRequest.getMethod() + " " + frontendRequest.getRequestURI());
 
         //////////////////// Setup backend request
         final HttpEntityEnclosingRequestBase backendRequest = new HttpEntityEnclosingRequestBase() {
@@ -116,15 +120,15 @@ public class ProxyServlet extends HttpServlet {
             }
         };
         try {
-            backendRequest.setURI(targetUrl.toURI());
+            backendRequest.setURI(new URL(targetBaseUri + frontendRequest.getRequestURI()).toURI());
         } catch (URISyntaxException ex) {
             throw new IOException(ex);
         }
 
         //////////////////// Copy headers to backend request
-        final Enumeration<String> headerNames = frontendRequest.getHeaderNames();
-        while (headerNames.hasMoreElements()) {
-            final String headerName = headerNames.nextElement();
+        final Enumeration<String> frontendHeaderNames = frontendRequest.getHeaderNames();
+        while (frontendHeaderNames.hasMoreElements()) {
+            final String headerName = frontendHeaderNames.nextElement();
             final Enumeration<String> headerValues = frontendRequest.getHeaders(headerName);
             while (headerValues.hasMoreElements()) {
                 final String headerValue = headerValues.nextElement();
@@ -145,10 +149,10 @@ public class ProxyServlet extends HttpServlet {
             frontendResponse.setStatus(backendResponse.getStatusLine().getStatusCode());
 
             // Copy back headers
-            @SuppressWarnings("unchecked")
-            final Set<String> setHeaderNames = new HashSet();
-            for (Header header : backendResponse.getAllHeaders()) {
-                if (setHeaderNames.add(header.getName())) {
+            final Header[] backendHeaders = backendResponse.getAllHeaders();
+            final Set<String> backendHeaderNames = new HashSet<>(backendHeaders.length);
+            for (Header header : backendHeaders) {
+                if (backendHeaderNames.add(header.getName())) {
                     frontendResponse.setHeader(header.getName(), header.getValue());
                 } else {
                     frontendResponse.addHeader(header.getName(), header.getValue());
@@ -165,6 +169,13 @@ public class ProxyServlet extends HttpServlet {
                 }
             }
             outStream.flush();
+        }
+    }
+
+//////////////////////////////////////// Helpers
+    private void log(int level, String message) {
+        if (log != null) {
+            log.log(level, message);
         }
     }
 
