@@ -148,7 +148,7 @@ public class ProxyServlet extends HttpServlet {
     @Override
     protected void service(final HttpServletRequest frontendRequest, final HttpServletResponse frontendResponse)
             throws ServletException, IOException {
-        log(LogService.LOG_INFO, "Request: " + frontendRequest.getRemoteAddr() + ":" + frontendRequest.getRemotePort()
+        log(LogService.LOG_INFO, "Proxying request: " + frontendRequest.getRemoteAddr() + ":" + frontendRequest.getRemotePort()
                 + " (" + frontendRequest.getHeader("Host") + ") " + frontendRequest.getMethod() + " " + frontendRequest.getRequestURI());
 
         if (targetBaseUri == null) {
