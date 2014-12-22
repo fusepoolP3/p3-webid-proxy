@@ -100,18 +100,32 @@ public class ProxyServlet extends HttpServlet {
         this.log = null;
     }
 
+    /**
+     * DS-binding run on activation, configures the service
+     *
+     * @param properties The configuration (or none) obtained from the container
+     */
     @Activate
     public void activate(final Map<String, ?> properties) {
         configure(properties);
         log(LogService.LOG_INFO, "Service configured.");
     }
 
+    /**
+     * DS-binding called when configuration changes, updates internal config.
+     *
+     * @param properties The new configuration (or none) obtained from the
+     * container.
+     */
     @Modified
     void modified(final Map<String, ?> properties) {
         configure(properties);
         log(LogService.LOG_INFO, "Configuration modified.");
     }
 
+    /**
+     * DS-binding called when the service is deactivated.
+     */
     @Deactivate
     public void deactivate() {
         configure(null);
