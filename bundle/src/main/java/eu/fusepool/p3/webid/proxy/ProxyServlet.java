@@ -72,7 +72,6 @@ public class ProxyServlet extends HttpServlet {
         final HttpClientBuilder hcb = HttpClientBuilder.create();
         hcb.setRedirectStrategy(new NeverRedirectStrategy());
         httpclient = hcb.build();
-        targetBaseUri = null;
     }
 
 //////////////////////////////////////// Interaction with the container
@@ -86,7 +85,7 @@ public class ProxyServlet extends HttpServlet {
             service = LogService.class,
             unbind = "unsetLogService"
     )
-    protected void setLogService(LogService service) {
+    protected void setLogService(final LogService service) {
         this.log = service;
         log.log(LogService.LOG_INFO, "Obtained logservice!");
     }
@@ -96,7 +95,7 @@ public class ProxyServlet extends HttpServlet {
      *
      * @param service the log-service being removed
      */
-    protected void unsetLogService(LogService service) {
+    protected void unsetLogService(final LogService service) {
         this.log = null;
     }
 
@@ -108,7 +107,7 @@ public class ProxyServlet extends HttpServlet {
     @Activate
     public void activate(final Map<String, ?> properties) {
         configure(properties);
-        log(LogService.LOG_INFO, "Service configured.");
+        log.log(LogService.LOG_INFO, "Service configured.");
     }
 
     /**
@@ -120,7 +119,7 @@ public class ProxyServlet extends HttpServlet {
     @Modified
     void modified(final Map<String, ?> properties) {
         configure(properties);
-        log(LogService.LOG_INFO, "Configuration modified.");
+        log.log(LogService.LOG_INFO, "Configuration modified.");
     }
 
     /**
@@ -129,7 +128,7 @@ public class ProxyServlet extends HttpServlet {
     @Deactivate
     public void deactivate() {
         configure(null);
-        log(LogService.LOG_INFO, "Service deconfigured.");
+        log.log(LogService.LOG_INFO, "Service deconfigured.");
     }
 
 //////////////////////////////////////// Service-Method
@@ -148,7 +147,7 @@ public class ProxyServlet extends HttpServlet {
     @Override
     protected void service(final HttpServletRequest frontendRequest, final HttpServletResponse frontendResponse)
             throws ServletException, IOException {
-        log(LogService.LOG_INFO, "Proxying request: " + frontendRequest.getRemoteAddr() + ":" + frontendRequest.getRemotePort()
+        log.log(LogService.LOG_INFO, "Proxying request: " + frontendRequest.getRemoteAddr() + ":" + frontendRequest.getRemotePort()
                 + " (" + frontendRequest.getHeader("Host") + ") " + frontendRequest.getMethod() + " " + frontendRequest.getRequestURI());
 
         if (targetBaseUri == null) {
@@ -217,34 +216,28 @@ public class ProxyServlet extends HttpServlet {
     }
 
 //////////////////////////////////////// Helpers
-    private void configure(Map<String, ?> properties) {
+    private void configure(final Map<String, ?> properties) {
         if (properties == null) {
             targetBaseUri = null;
         } else {
-            log(LogService.LOG_INFO, "Configuring service...");
+            log.log(LogService.LOG_INFO, "Configuring service...");
             if (properties.containsKey(PROPERTY_TARGET_BASE_URI)) {
                 targetBaseUri = (String) properties.get(PROPERTY_TARGET_BASE_URI);
-                log(LogService.LOG_INFO, "Proxy enabled, target: " + targetBaseUri);
+                log.log(LogService.LOG_INFO, "Proxy enabled, target: " + targetBaseUri);
             } else {
                 targetBaseUri = null;
             }
         }
     }
 
-    private void log(int level, String message) {
-        if (log != null) {
-            log.log(level, message);
-        }
-    }
-
     private static class NeverRedirectStrategy implements RedirectStrategy {
         @Override
-        public HttpUriRequest getRedirect(HttpRequest hr, HttpResponse hr1, org.apache.http.protocol.HttpContext hc) throws org.apache.http.ProtocolException {
+        public HttpUriRequest getRedirect(final HttpRequest hr, final HttpResponse hr1, final org.apache.http.protocol.HttpContext hc) throws org.apache.http.ProtocolException {
             throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         }
 
         @Override
-        public boolean isRedirected(HttpRequest hr, HttpResponse hr1, org.apache.http.protocol.HttpContext hc) throws org.apache.http.ProtocolException {
+        public boolean isRedirected(final HttpRequest hr, final HttpResponse hr1, final org.apache.http.protocol.HttpContext hc) throws org.apache.http.ProtocolException {
             return false;
         }
     }
