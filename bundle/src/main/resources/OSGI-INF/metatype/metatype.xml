@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+ Copyright 2014 Bern University of Applied Sciences.
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+-->
+
+<metatype:MetaData xmlns:metatype="http://www.osgi.org/xmlns/metatype/v1.0.0" localization="OSGI-INF/metatype/metatype">
+    <OCD id="eu.fusepool.p3.webid.proxy.ProxyServlet"
+         name="Fusepool P3 WebID Proxy"
+         description="Configuration of the Fusepool P3 WebID Proxy">
+        <AD id="TargetBaseURI" type="String" default="http://localhost:8088" name="Target Base URI" description="Specifies base URI of the resources to which the proxy proxies."/>
+    </OCD>
+    <Designate pid="eu.fusepool.p3.webid.proxy.ProxyServlet">
+        <Object ocdref="eu.fusepool.p3.webid.proxy.ProxyServlet"/>
+    </Designate>
+</metatype:MetaData>
