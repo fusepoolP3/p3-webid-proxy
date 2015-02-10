@@ -17,6 +17,7 @@ package eu.fusepool.p3.webid.proxy;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.ConnectException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.security.cert.CertificateParsingException;
@@ -237,6 +238,13 @@ public class ProxyServlet extends HttpServlet {
                     IOUtils.copy(inStream, outStream);
                 }
             }
+            outStream.flush();
+        } catch (ConnectException ex) {
+            log.log(LogService.LOG_WARNING, "Exception while connecting to backend, returning 504: " + ex.getMessage());
+
+            frontendResponse.setStatus(504);    // GATEWAY TIMEOUT
+            final ServletOutputStream outStream = frontendResponse.getOutputStream();
+            outStream.println("504 - Gateway timout!");
             outStream.flush();
         }
     }
