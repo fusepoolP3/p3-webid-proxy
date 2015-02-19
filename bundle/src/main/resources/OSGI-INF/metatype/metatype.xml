@@ -22,6 +22,7 @@
          name="Fusepool P3 WebID Proxy"
          description="Configuration of the Fusepool P3 WebID Proxy">
         <AD id="TargetBaseURI" type="String" default="http://localhost:8088" name="Target Base URI" description="Specifies base URI of the resources to which the proxy proxies."/>
+        <AD id="alias" type="String" default="/proxy" name="Proxy Base URI" description="Specifies base URI of the proxy itself (on this host)"/>
     </OCD>
     <Designate pid="eu.fusepool.p3.webid.proxy.ProxyServlet">
         <Object ocdref="eu.fusepool.p3.webid.proxy.ProxyServlet"/>
