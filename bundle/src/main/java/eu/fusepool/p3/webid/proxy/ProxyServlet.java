@@ -60,7 +60,7 @@ import org.osgi.service.log.LogService;
  * @author Pascal Mainini
  */
 // refer to https://felix.apache.org/documentation/subprojects/apache-felix-http-service.html
-@Component(service = Servlet.class, property = {"alias=/", "TargetBaseURI=http://localhost:8088"})
+@Component(service = Servlet.class, property = {"alias=/proxy", "TargetBaseURI=http://localhost:8088"})
 @SuppressWarnings("serial")
 public class ProxyServlet extends HttpServlet {
 
@@ -257,7 +257,7 @@ public class ProxyServlet extends HttpServlet {
             log.log(LogService.LOG_INFO, "Configuring service...");
             if (properties.containsKey(PROPERTY_TARGET_BASE_URI)) {
                 targetBaseUri = (String) properties.get(PROPERTY_TARGET_BASE_URI);
-                log.log(LogService.LOG_INFO, "Proxy enabled, target: " + targetBaseUri);
+                log.log(LogService.LOG_INFO, "Proxy enabled, base: " + properties.get("alias") + ", target: " + targetBaseUri);
             } else {
                 targetBaseUri = null;
             }
